@@ -50,7 +50,7 @@ def transformCoordinates(string):
     w = xr*2
     h = yu*2
     xo = x - xr
-    yo = y + yu
+    yo = y - yu
 
     return xo, yo, w, h, 2*Ma, 2*ma, r, x, y
 
@@ -75,19 +75,18 @@ def generateArray(file):
                 val = '{}.jpg'.format(val)
                 di['name'] = val
                 # matplotlib
-                img = mpimg.imread(os.path.join("dataset", val))
+                img = mpimg.imread(os.path.join("dataset_clean", val))
                 if len(img.shape) == 3:
                     (h, w, _) = img.shape
                 elif len(img.shape) == 2:
                     (h, w) = img.shape
-                '''fig,ax = plt.subplots(1)
-                ax.imshow(img)'''
+                """fig,ax = plt.subplots(1)
+                ax.imshow(img)"""
 
                 jumps = int(arr[i+1])
                 temp = []
                 for j in range(0,jumps):
                     coords = arr[i+j+2]
-                    temp.append(list(int(float(x)) for x in coords.split()))
                     #transformCoordinates(string)
                     xf,yf,wf,hf,Ma,ma,r,x,y = transformCoordinates(coords)
 
@@ -95,16 +94,17 @@ def generateArray(file):
                         wf = w - xf
                     elif xf < 0 :
                         xf = 0
-                    if yf - hf < 0 :
+                    if yf + hf > h :
                         hf = h - yf
-                    elif yf > h :
-                        yf = h
+                    elif yf < 0 :
+                        yf = 0
+                    temp.append([xf,yf,wf,hf])
 
-                    '''rect = patches.Rectangle((xf,yf-hf), wf, hf, linewidth=1, edgecolor='b', facecolor='none')
+                    """rect = patches.Rectangle((xf,yf-hf), wf, hf, linewidth=1, edgecolor='b', facecolor='none')
                     ellip = patches.Ellipse((x,y), ma, Ma, r, linewidth=1, edgecolor='r', facecolor='none')
                     ax.add_patch(rect)
                     ax.add_patch(ellip)
-                plt.show()'''
+                plt.show()"""
 
                 di['annotations'] = temp
                 di['size'] = {'height': int(h), 'width': int(w)}
@@ -115,7 +115,7 @@ def generateArray(file):
     print(num_matches)
     return output
 
-folder = glob.glob('dataset/*.jpg')
+folder = glob.glob('dataset_clean/*.jpg')
 folder = pd.Series(folder)
 files = returnEllipseListFiles("labels")
 print(len(folder))
@@ -134,16 +134,16 @@ data = pd.DataFrame(list(data), columns=['name', 'annotations', 'size'])
 #print(data)
 
 
-file_names = data['name'].tolist()
+"""file_names = data['name'].tolist()
 print(file_names)
 
 temp = []
-for filename in os.listdir('dataset/'):
+for filename in os.listdir('dataset_clean/'):
     if filename not in file_names:
-        os.remove('dataset/' + filename)
+        os.remove('dataset_clean/' + filename)"""
 
 for index, row in data.iterrows():
-    file = 'dataset/{}.xml'.format(row['name'][:-4])
+    file = 'dataset_clean/{}.xml'.format(row['name'][:-4])
     print(file)
     with open(file, 'w') as f:
         xml_file = pdToXml(row['name'], row['annotations'], row['size'], 'dataset/')
